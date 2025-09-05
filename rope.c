@@ -45,7 +45,7 @@ void print_rope(rope_node *node) {
 }
 
 int main (){
-    FILE *f = fopen("test2.txt", "r");
+    FILE *f = fopen("test.txt", "r");
     if(!f){
         perror("failed to open file!");
         return 1;
