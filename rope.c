@@ -123,6 +123,25 @@ long count_depth(rope_node *node){
     return 1 + (left_depth > right_depth ? left_depth:right_depth);
 }
 
+long fibonacci(long n){
+    if(n == 0 )return 0;
+    if(n == 1 )return 1;
+    int a = 0,b = 1,c;
+    for(int i = 2; i <= n; i++){
+        c = a + b;
+        a = b;
+        b = c;
+    }
+    return b;
+}
+
+int is_balanced(rope_node *node){
+    if (node == NULL) return 1;
+
+    long rope_length = node->weight + length(node->right);
+    long depth_length = count_depth(node);
+    return rope_length >= fibonacci(depth_length + 2);
+}
 
 struct timespec start,end;
 int main (){
@@ -162,7 +181,16 @@ int main (){
     // }
 
     printf("%di",i);
-    rope_node *nd = build_balanced_rope(leaves, i);
+     rope_node *nd ;
+    if(is_balanced(root) == 0){
+        printf("\nrope is already balanced current depth is %zu\n",count_depth(root));
+    }else {
+        printf("\nrope is not balanced\nbalancing now");
+        nd = build_balanced_rope(leaves, i);
+        printf("\ncurrent depth is %zu\n",count_depth(nd));
+    }
+
+
     clock_gettime(CLOCK_MONOTONIC, &end);
     double elapsed = (end.tv_sec - start.tv_sec) +
                      (end.tv_nsec - start.tv_nsec) / 1e9;
@@ -179,7 +207,7 @@ int main (){
     long ndepth = count_depth(nd);
 
     printf("\n%d total leaves\n",i);
-    printf("%zu total depth before rebalancing and %zu after rebalancing ",rdepth,ndepth);
+    printf("%zu total depth before rebalancing and %zu after rebalancing \n",rdepth,ndepth);
     free_internal(root);
     free(leaves);
     free_ropes(nd,1);
