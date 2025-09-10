@@ -112,6 +112,18 @@ void free_internal(rope_node *node){
 
 }
 
+long count_depth(rope_node *node){
+    if (node == NULL){
+        return 0;
+    }
+    if (node->left == NULL && node->right == NULL)return 1;
+    int left_depth = count_depth(node->left);
+    int right_depth = count_depth(node->right);
+
+    return 1 + (left_depth > right_depth ? left_depth:right_depth);
+}
+
+
 struct timespec start,end;
 int main (){
     FILE *f = fopen("test2.txt", "r");
@@ -143,11 +155,7 @@ int main (){
     rope_node **leaves = malloc(sizeof(rope_node*)*i);
     clock_gettime(CLOCK_MONOTONIC, &start);
     int t =  collect_leaves(root, leaves, 0);
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    double elapsed = (end.tv_sec - start.tv_sec) +
-                     (end.tv_nsec - start.tv_nsec) / 1e9;
 
-    printf("Flatten took %.6f seconds\n", elapsed);
     // for (int j = 0; j<i; j++) {
     //     rope_node *n = leaves[j];
     //     printf("\n%d\n",n->weight);
@@ -155,16 +163,23 @@ int main (){
 
     printf("%di",i);
     rope_node *nd = build_balanced_rope(leaves, i);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double elapsed = (end.tv_sec - start.tv_sec) +
+                     (end.tv_nsec - start.tv_nsec) / 1e9;
+    printf("Flatten and rebalancing took %.6f seconds\n", elapsed);
     if (!nd){
         perror("failed to build a balanced rope");
         return 0;
     }
+    print_rope(nd);
     printf("\n%zu characters in right and %zu characters in left \n",length(nd->right),length(nd->left));
     printf("\n%zu total characters in the rope\n",nd->weight);
     // printf("\n%zu",nd->left->weight );
+    long rdepth = count_depth(root);
+    long ndepth = count_depth(nd);
 
-    print_rope(nd);
     printf("\n%d total leaves\n",i);
+    printf("%zu total depth before rebalancing and %zu after rebalancing ",rdepth,ndepth);
     free_internal(root);
     free(leaves);
     free_ropes(nd,1);
