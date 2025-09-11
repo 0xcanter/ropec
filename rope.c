@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#define CHUNK_SIZE 3000
+#define CHUNK_SIZE 64
 typedef struct rope_node{
     long weight;
     char *str;
@@ -13,9 +13,10 @@ typedef struct rope_node{
 
 rope_node *make_leaf(char *str){
     rope_node *leaf = malloc(sizeof(rope_node));
-    leaf->str = malloc(strlen(str)+1);
-    strncpy(leaf->str, str, strlen(str)+1);
     leaf->weight = strlen(str);
+    leaf->str = malloc(strlen(str)+1);
+    memcpy(leaf->str, str, strlen(str));
+    leaf->str[leaf->weight] = '\0';
     leaf->left = leaf->right = NULL;
     return leaf;
 }
@@ -27,7 +28,7 @@ rope_node *make_leaf(char *str){
 long length(rope_node *node){
     if (node == NULL)return 0;
     if (node->str != NULL ){
-        return node->weight;
+        return node->weight ;
     }
     return node->weight + length(node->right);
 
@@ -138,14 +139,30 @@ long fibonacci(long n){
 int is_balanced(rope_node *node){
     if (node == NULL) return 1;
 
-    long rope_length = node->weight + length(node->right);
+    long rope_length = length(node);
     long depth_length = count_depth(node);
-    return rope_length >= fibonacci(depth_length + 2);
+    long fib_depth = fibonacci(depth_length + 2);
+    printf("\n%zu fib depth and rope %zu\n",fib_depth,rope_length);
+    return rope_length >= fib_depth;
+}
+
+char find_char_rope(rope_node *node,long i){
+    if(node == NULL)return '\0';
+    if(i >= length(node)) return '\0';
+    if(node->right == NULL && node->left == NULL){
+        return node->str[i - 1];
+    }
+    if(i < node->weight){
+      return  find_char_rope(node->left, i );
+    }else {
+
+      return find_char_rope(node->right,i - node->weight);
+    }
 }
 
 struct timespec start,end;
 int main (){
-    FILE *f = fopen("test2.txt", "r");
+    FILE *f = fopen("test.txt", "r");
     if(!f){
         perror("failed to open file!");
         return 1;
@@ -157,7 +174,9 @@ int main (){
     while ((bytes_read = fread(buffer, 1, CHUNK_SIZE, f)) > 0) {
         buffer[bytes_read] = '\0';
 
-        rope_node *leaf = make_leaf(buffer);
+        rope_node *leaf = make_leaf(buffer)
+
+;
 
         if(root == NULL){
             root = leaf;
@@ -175,7 +194,7 @@ int main (){
     clock_gettime(CLOCK_MONOTONIC, &start);
     int t =  collect_leaves(root, leaves, 0);
 
-    // for (int j = 0; j<i; j++) {
+    // for (int j = 0; j<i; j++) Hello, my name is Temple and i am 18 years old i have 5 brothers and i currently live in nnobi anambra state nigeria and now i love my life because am building a simple terminal text editor i{
     //     rope_node *n = leaves[j];
     //     printf("\n%d\n",n->weight);
     // }
@@ -186,6 +205,7 @@ int main (){
         printf("\nrope is already balanced current depth is %zu\n",count_depth(root));
     }else {
         printf("\nrope is not balanced\nbalancing now");
+        // free_internal(root);
         nd = build_balanced_rope(leaves, i);
         printf("\ncurrent depth is %zu\n",count_depth(nd));
     }
@@ -201,14 +221,17 @@ int main (){
     }
     print_rope(nd);
     printf("\n%zu characters in right and %zu characters in left \n",length(nd->right),length(nd->left));
-    printf("\n%zu total characters in the rope\n",nd->weight);
+    printf("\n%zu total characters in the rope\n",length(nd->right) + nd->weight);
     // printf("\n%zu",nd->left->weight );
     long rdepth = count_depth(root);
     long ndepth = count_depth(nd);
-
-    printf("\n%d total leaves\n",i);
-    printf("%zu total depth before rebalancing and %zu after rebalancing \n",rdepth,ndepth);
+    long fibd = fibonacci(ndepth+2);
+    char str = find_char_rope(nd, 383);
+    print_rope(nd->right);
+    printf("\n %c \n",str);
     free_internal(root);
+    printf("\n%d total leaves and fibdepth is %s\n",i,fibd < nd->weight+length(nd->right) ? "true":"false");
+    printf("%zu total depth before rebalancing and %zu after rebalancing \n",rdepth,ndepth);
     free(leaves);
     free_ropes(nd,1);
     return 0;
