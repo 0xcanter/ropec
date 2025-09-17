@@ -11,11 +11,7 @@ long fibonacci(long n){
     return b;
 }
 int main(){
-    long s = fibonacci(8);
-    long *t = &s;
-    long **tt = &t;
-    long ***ttt = &tt;
-    long ****tttt = &ttt;
+    int num[5] = {1,2,3,4,5};
+    printf("%d",num[3]);
 
-    printf("%zu",****(tttt));
 }

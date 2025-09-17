@@ -1,7 +1,9 @@
 #include "stdio.h"
 #include <bits/time.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <time.h>
 #define CHUNK_SIZE 1024
 typedef struct rope_node{
@@ -12,11 +14,12 @@ typedef struct rope_node{
 }rope_node;
 
 rope_node *make_leaf(char *str){
+    size_t len = strlen(str);
     rope_node *leaf = malloc(sizeof(rope_node));
     leaf->weight
-        = strlen(str);
-    leaf->str = malloc(strlen(str)+1);
-    memcpy(leaf->str, str, strlen(str));
+        = len;
+    leaf->str = malloc(len+1);
+    memcpy(leaf->str, str, len);
     leaf->str[leaf->weight] = '\0';
     leaf->left = leaf->right = NULL;
     return leaf;
@@ -76,24 +79,6 @@ rope_node *substr(rope_node *node,long start,long len){
         rope_node *right =  substr(node->right, 0, len - lef_part_len);
         return concat(left,right);
     }
-
-}
-
-rope_node *insert(rope_node *node,long pos,char *text){
-    rope_node *left = substr(node, 0, pos);
-    rope_node *right = substr(node, pos, length(node) - pos);
-    rope_node *insert_leaf = make_leaf(text);
-    return concat(left, concat(insert_leaf, right));
-}
-
-void leaves_count(rope_node *node,long *i){
-    if (node == NULL)return;
-    if (node->str != NULL && node->left == NULL && node->right == NULL){
-
-        *i += 1;
-    }
-    leaves_count(node->left,i);
-    leaves_count(node->right,i);
 }
 
 void print_rope(rope_node *node) {
@@ -104,6 +89,67 @@ void print_rope(rope_node *node) {
     print_rope(node->left);
     print_rope(node->right);
 }
+
+void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right){
+    if(node == NULL){
+        *left = NULL;
+        *right = NULL;
+        return;
+    };
+    if(node->left == NULL && node->right == NULL){
+        if (pos <= 0){
+            *left = make_leaf("");
+            *right = node;
+        }else if(pos >= node->weight){
+            *left = node;
+            *right = make_leaf("");
+        }else {
+            char *left_str = malloc(pos + 1);
+            char *right_str = malloc((node->weight - pos) + 1);
+            memcpy(left_str, node->str, pos);left_str[pos] = '\0';
+            memcpy(right_str, node->str + pos, node->weight - pos);right_str[node->weight - pos] = '\0';
+            *left = make_leaf_owned(left_str,pos);
+            *right = make_leaf_owned(right_str,node->weight - pos);
+            free(node->str);
+            node->str = NULL;
+            return;
+        }
+    }
+
+    if (pos < node->weight){
+        rope_node *L,*R;
+        split_rope(node->left,pos, &L,&R);
+        *left = L;
+        *right = concat(R, node->right);
+    }else if(pos == node->weight){
+        *left = node->left;
+        *right = node->right;
+    }else{
+        rope_node *L,*R;
+        split_rope(node->right, pos - node->weight,&L,&R);
+        *left = concat(node->left, L);
+        *right = R;
+    }
+
+}
+
+void insert(rope_node *node,long pos,char *text,rope_node **root){
+    rope_node *left,*right;
+    split_rope(node,pos,&left, &right);
+    rope_node *insert_leaf = make_leaf(text);
+    *root = concat(left, concat(insert_leaf, right));
+}
+
+void leaves_count(rope_node *node,long *i){
+    if (node == NULL)return;
+    if (node->str != NULL && node->left == NULL && node->right == NULL){
+        *i += 1;
+    }
+    leaves_count(node->left,i);
+    leaves_count(node->right,i);
+}
+
+
 
 int collect_leaves(rope_node *node,rope_node **leaves,int index){
 
@@ -130,9 +176,7 @@ rope_node *build_balanced_rope(rope_node **leaves,long n){
     rope_node *parent = malloc(sizeof(rope_node));
     parent->str = NULL;
     parent->left = left;
-    // parent->left->weight = length(left);
     parent->right = right;
-    // parent->right->weight = length(right);
     parent->weight = left ? length(left):0;
     return parent;
 
@@ -144,7 +188,7 @@ void free_ropes(rope_node *root,int free_leaves){
     }
     free_ropes(root->left,free_leaves);
     free_ropes(root->right,free_leaves);
-    if (root->left == NULL && root->right == NULL){
+    if (root->str && free_leaves){
         if(free_leaves && root->str){
             free(root->str);
         }
@@ -212,7 +256,6 @@ char find_char_rope(rope_node *node,long i){
 }
 
 
-
 void copy_leaves(rope_node *n,char *buf,long *pos){
     if(!n)return;
     if(n->left == NULL && n->right == NULL && n->str != NULL){
@@ -239,7 +282,7 @@ char *flatten_to_string(rope_node *node){
 
 struct timespec start,end;
 int main (){
-    FILE *f = fopen("test.txt", "r");
+    FILE *f = fopen("test2.txt", "r");
     if(!f){
         perror("failed to open file!");
         return 1;
@@ -266,7 +309,6 @@ int main (){
     printf("%zu leaves",i);
     rope_node **leaves = malloc(sizeof(rope_node*) * i);
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
     int t =  collect_leaves(root, leaves, 0);
 
     rope_node *nd ;
@@ -279,33 +321,23 @@ int main (){
         printf("\ncurrent depth is %zu\n",count_depth(nd));
     }
 
-
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    double elapsed = (end.tv_sec - start.tv_sec) +
-                     (end.tv_nsec - start.tv_nsec) / 1e9;
-    printf("Flatten and rebalancing took %.6f seconds\n", elapsed);
-    char *flat_string = flatten_to_string(nd);
-    // printf("%s\n",flat_string);
+    // char *flat_string = flatten_to_string(nd);
+    // // printf("%s\n",flat_string);
     if (!nd){
         perror("failed to build a balanced rope");
         return 0;
     }
 
-    rope_node *tem= insert(nd, 18+6, " Chukwuka ");
-    print_rope(tem);
-    // int isb = is_balanced(tem);
-    // long it = 0;
-    // leaves_count(tem, &it);
-    // printf("%d\n %zu\n",isb,it);
-    // rope_node **leaves2 = malloc(sizeof(rope_node*) * it);
-    // collect_leaves(tem, leaves2, it);
-    // rope_node *b2;
-    // if (isb == 1)b2 = build_balanced_rope(leaves2, it);
-    // else
-    //  b2 = tem;
-    // char *wc = "Hello, my name is Temple and i am 18 years old i have 5 brothers and i currently live in nnobi anambra state nigeria and now i love my life because am building a simple terminal text editor in c using rope and this text file is my testcase for my ropec library that i will use in my project which is ptediorHello, my name is Temple and i am 18 years old i have 5 brothers ajahdkindhr";
-    // printf("\n%zu\n",strlen(wc));
-    printf("\n%zu characters in right and %zu characters in left \n",length(tem->right),length(tem->left));
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    rope_node *tem ;
+    insert(nd, 338799340, " Chukwuka ",&tem);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    double elapsed = (end.tv_sec - start.tv_sec) +
+                     (end.tv_nsec - start.tv_nsec) / 1e9;
+    // print_rope(tem);
+    printf("\nit took %.6f seconds\n", elapsed);
+    printf("\n%zu characters in right and %zu characters in left \n",length(tem->right),tem->weight);
     printf("\n%zu total characters in the rope\n",length(tem->right) + tem->weight);
     char str = find_char_rope(tem, 383);
     printf("\n %c \n",str);
@@ -313,10 +345,7 @@ int main (){
     printf("\n%c\n",st);
     free_internal(root);
     free(leaves);
-    // free(leaves2);
-    free(flat_string);
-    free_ropes(nd,1);
+    // free(flat_string);
     free_ropes(tem,1);
-    // free_ropes(b2,1);
     return 0;
 }
