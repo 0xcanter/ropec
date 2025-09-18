@@ -5,7 +5,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
-#define CHUNK_SIZE 1024
+#define CHUNK_SIZE 16
 typedef struct rope_node{
     long weight;
     char *str;
@@ -100,10 +100,13 @@ void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right){
         if (pos <= 0){
             *left = make_leaf("");
             *right = node;
+            return;
         }else if(pos >= node->weight){
             *left = node;
             *right = make_leaf("");
-        }else {
+            return;
+        }else if (pos <= node->weight){
+            printf("haha");
             char *left_str = malloc(pos + 1);
             char *right_str = malloc((node->weight - pos) + 1);
             memcpy(left_str, node->str, pos);left_str[pos] = '\0';
@@ -282,7 +285,7 @@ char *flatten_to_string(rope_node *node){
 
 struct timespec start,end;
 int main (){
-    FILE *f = fopen("test2.txt", "r");
+    FILE *f = fopen("test.txt", "r");
     if(!f){
         perror("failed to open file!");
         return 1;
@@ -293,9 +296,7 @@ int main (){
     rope_node *root = NULL;
     while ((bytes_read = fread(buffer, 1, CHUNK_SIZE * 4, f)) > 0) {
         buffer[bytes_read] = '\0';
-
         rope_node *leaf = make_leaf(buffer);
-
         if(root == NULL){
             root = leaf;
         }else {
@@ -330,12 +331,12 @@ int main (){
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     rope_node *tem ;
-    insert(nd, 338799340, " Chukwuka ",&tem);
+    insert(nd,-2, " Chukwuka ",&tem);
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     double elapsed = (end.tv_sec - start.tv_sec) +
                      (end.tv_nsec - start.tv_nsec) / 1e9;
-    // print_rope(tem);
+    print_rope(tem);
     printf("\nit took %.6f seconds\n", elapsed);
     printf("\n%zu characters in right and %zu characters in left \n",length(tem->right),tem->weight);
     printf("\n%zu total characters in the rope\n",length(tem->right) + tem->weight);
