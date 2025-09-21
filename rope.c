@@ -1,5 +1,5 @@
 #include "stdio.h"
-#include <bits/time.h>
+//#include <bits/time.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -146,7 +146,7 @@ void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right,mem_
             *left = node;
             *right = NULL;
             return;
-        }else if (pos <= node->weight){
+        }else {
             char *left_str = malloc(pos + 1);
             char *right_str = malloc((node->weight - pos) + 1);
             memcpy(left_str, node->str, pos);left_str[pos] = '\0';
@@ -197,8 +197,7 @@ void delete(rope_node *node,long pos,rope_node **root,long len,mem_for_special *
         *root = node;
         return;
     }
-    long lef_len = pos;
-    long right_start = pos + len;
+    if (pos + len > total) len = total - pos;
 
     rope_node *left,*right,*temp,*ignore;
     split_rope(node, pos, &left, &temp,mem);
@@ -356,7 +355,7 @@ char *flatten_to_string(rope_node *node){
 
 struct timespec start,end;
 int main (){
-    FILE *f = fopen("test2.txt", "r");
+    FILE *f = fopen("test.txt", "r");
     if(!f){
         perror("failed to open file!");
         return 1;
@@ -406,9 +405,11 @@ int main (){
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     rope_node *temp ;
-    insert(nd,192, " Chukwuka ",&temp,&mem);
+    insert(nd,3, "XYZ",&temp,&mem);
+    print_rope(temp);
     rope_node *tem ;
-    delete(temp, 192, &tem,10,&mem);
+    delete(temp, 5, &tem,2,&mem);
+    print_rope(tem);
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     double elapsed = (end.tv_sec - start.tv_sec) +
@@ -420,10 +421,21 @@ int main (){
     printf("\n %zu \n",mem.cap);
     printf("\n%zu characters in right and %zu characters in left \n",length(tem->right),tem->weight);
     printf("\n%zu total characters in the rope\n",length(tem->right) + tem->weight);
-    char str = find_char_rope(tem, 383);
+    char str = find_char_rope(tem, 4);
     printf("\n %c \n",str);
-    char st = find_char_rope(tem, 185);
-    printf("\n%c\n",st);
+    rope_node *inpf;
+    insert(tem,0,"123",&inpf,&mem);
+    print_rope(inpf);
+    rope_node *delt;
+    delete(inpf,7,&delt,3,&mem);
+    print_rope(delt);
+    char str2 = find_char_rope(delt,6);
+    printf("\n%c\n",str2);
+    rope_node *insk;
+    insert(delt,10,"KLM",&insk,&mem);
+    char str3 = find_char_rope(insk,8);
+    printf("\n%c %c %c\n",str,str2,str3);
+    print_rope(insk);
     free(leaves);
     // free(mem.arr);
     // free ropes
