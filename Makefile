@@ -1,5 +1,5 @@
 rope: rope.c
-	@gcc rope.c -o rope
+	@gcc -fsanitize=address -g -O1 -o rope rope.c;
 run:
 	./rope
 valgrind:
