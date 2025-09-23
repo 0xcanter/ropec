@@ -6,7 +6,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <stdbool.h>
-#define CHUNK_SIZE 1024
+#include "rope.h"
+#define CHUNK_SIZE 128
 typedef struct rope_node{
     long weight;
     char *str;
@@ -14,11 +15,7 @@ typedef struct rope_node{
     struct rope_node *right;
 }rope_node;
 
-typedef struct {
-    rope_node **arr;
-    size_t cap;
-    size_t size;
-}mem_for_special;
+
 
 void init_mem_f_s(mem_for_special *mem,size_t initial_cap){
     mem->arr = calloc(initial_cap,sizeof(rope_node*));
@@ -185,7 +182,7 @@ void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right,mem_
 
 }
 
-void insert(rope_node *node,long pos,char *text,rope_node **root,mem_for_special *mem){
+void insert_rope(rope_node *node,long pos,char *text,rope_node **root,mem_for_special *mem){
     rope_node *left,*right;
     split_rope(node,pos,&left, &right,mem);
     rope_node *insert_leaf = make_leaf(text);
@@ -193,7 +190,7 @@ void insert(rope_node *node,long pos,char *text,rope_node **root,mem_for_special
     *root = concat(left, concat(insert_leaf, right));
 }
 
-void delete(rope_node *node,long pos,rope_node **root,long len,mem_for_special *mem){
+void delete_rope(rope_node *node,long pos,rope_node **root,long len,mem_for_special *mem){
     if (!node || len <= 0){
         *root = node;
         return;
@@ -363,109 +360,109 @@ char *flatten_to_string(rope_node *node){
     return buffer;
 }
 
-struct timespec start,end;
-int main (){
-    FILE *f = fopen("test2.txt", "r");
-    if(!f){
-        perror("failed to open file!");
-        return 1;
-    }
-    char buffer[CHUNK_SIZE * 4 + 1];
-    size_t bytes_read;
+// struct timespec start,end;
+// int main (){
+//     FILE *f = fopen("test.txt", "r");
+//     if(!f){
+//         perror("failed to open file!");
+//         return 1;
+//     }
+//     char buffer[CHUNK_SIZE * 4 + 1];
+//     size_t bytes_read;
 
-    rope_node *root = NULL;
-    while ((bytes_read = fread(buffer, 1, CHUNK_SIZE * 4, f)) > 0) {
-        buffer[bytes_read] = '\0';
-        rope_node *leaf = make_leaf(buffer);
-        // printf("\nleaf is %zu\n",bytes_read);
-        if(root == NULL){
-            root = leaf;
-        }else {
-            root = concat(root,leaf);
-        }
-    }
-    fclose(f);
+//     rope_node *root = NULL;
+//     while ((bytes_read = fread(buffer, 1, CHUNK_SIZE * 4, f)) > 0) {
+//         buffer[bytes_read] = '\0';
+//         rope_node *leaf = make_leaf(buffer);
+//         // printf("\nleaf is %zu\n",bytes_read);
+//         if(root == NULL){
+//             root = leaf;
+//         }else {
+//             root = concat(root,leaf);
+//         }
+//     }
+//     fclose(f);
 
-    mem_for_special mem;
-    init_mem_f_s(&mem, 1);
+//     mem_for_special mem;
+//     init_mem_f_s(&mem, 1);
 
-    long i = 0;
-    leaves_count(root, &i);
-    printf("%zu leaves",i);
-    rope_node **leaves = malloc(sizeof(rope_node*) * i);
+//     long i = 0;
+//     leaves_count(root, &i);
+//     printf("%zu leaves",i);
+//     rope_node **leaves = malloc(sizeof(rope_node*) * i);
 
-    int t =  collect_leaves(root, leaves, 0);
+//     int t =  collect_leaves(root, leaves, 0);
 
-    rope_node *nd ;
-    printf("\n%d\n",is_balanced(root));
-    if(is_balanced(root) == 1){
-        printf("\nrope is already balanced current depth is %zu\n",count_depth(root));
-        nd = root;
-    }else {
-        printf("\nrope is not balanced\nbalancing now");
-        nd = build_balanced_rope(leaves, i);
-        printf("\ncurrent depth is %zu\n",count_depth(nd));
-    }
-    printf("\n%lu\n",length(nd));
-    // char *flat_string = flatten_to_string(nd);
-    // // printf("%s\n",flat_string);
-    if (!nd){
-        perror("failed to build a balanced rope");
-        return 0;
-    }
+//     rope_node *nd ;
+//     printf("\n%d\n",is_balanced(root));
+//     if(is_balanced(root) == 1){
+//         printf("\nrope is already balanced current depth is %zu\n",count_depth(root));
+//         nd = root;
+//     }else {
+//         printf("\nrope is not balanced\nbalancing now");
+//         nd = build_balanced_rope(leaves, i);
+//         printf("\ncurrent depth is %zu\n",count_depth(nd));
+//     }
+//     printf("\n%lu\n",length(nd));
+//     // char *flat_string = flatten_to_string(nd);
+//     // // printf("%s\n",flat_string);
+//     if (!nd){
+//         perror("failed to build a balanced rope");
+//         return 0;
+//     }
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    // rope_node *temp ;
-    // insert(nd,3, "XYZ",&temp,&mem);
+//     clock_gettime(CLOCK_MONOTONIC, &start);
+//     // rope_node *temp ;
+//     // insert(nd,3, "XYZ",&temp,&mem);
 
-    delete(nd, 0, &nd, 2, &mem);
+//     delete_rope(nd, 0, &nd, 2, &mem);
 
-    insert(nd, 338799351, "HEY", &nd, &mem);
+//     insert_rope(nd, 338799351, "HEY", &nd, &mem);
 
-    delete(nd, 0, &nd,3,&mem);
+//     delete_rope(nd, 0, &nd,3,&mem);
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    double elapsed = (end.tv_sec - start.tv_sec) +
-                     (end.tv_nsec - start.tv_nsec) / 1e9;
-    // print_rope(temp);
-    // printf("\n--------------\n");
-    // print_rope(delt);
-    printf("\n%lu\n",length(nd));
-    printf("\nit took %.6f seconds\n", elapsed);
-    printf("\n %zu \n",mem.cap);
-    printf("\n%zu characters in right and %zu characters in left \n",length(nd->right),nd->weight);
-    printf("\n%zu total characters in the rope\n",length(nd->right) + nd->weight);
-    char st = find_char_rope(nd, 338799346);
-    char str = find_char_rope(nd, 338799347);
-    char stri = find_char_rope(nd, 338799348);
-    printf("\n%c %c %c\n",st,str,stri);
-    free(leaves);
-    // free(mem.arr);
-    // free ropes
-    if(is_balanced(root) == 0){
-        free_internal(root);
-    }
-    // free_ropes(nd,&mem);
-    // free_ropes(del3);
-    // free_ropes(ins3);
-    free_ropes(nd,&mem);
-    for (size_t i = 0; i < mem.cap;++i){
-        rope_node *node = mem.arr[i];
-        if(!node)continue;
-        if (node->str != NULL){
-            free(node->str);
-            node->str = NULL;
-        };
-        free(node);
-        mem.arr[i] = NULL;
-    }
-    // for (size_t i = 0; i < mem.cap;++i){
-    //     rope_node *node = mem.arr[i];
-    //     if(!node)continue;
-    //     free(node);
-    //     mem.arr[i] = NULL;
-    // }
-    free(mem.arr);
-    // free_ropes(nd,1);
-    return 0;
-}
+//     clock_gettime(CLOCK_MONOTONIC, &end);
+//     double elapsed = (end.tv_sec - start.tv_sec) +
+//                      (end.tv_nsec - start.tv_nsec) / 1e9;
+//     // print_rope(temp);
+//     // printf("\n--------------\n");
+//     // print_rope(delt);
+//     printf("\n%lu\n",length(nd));
+//     printf("\nit took %.6f seconds\n", elapsed);
+//     printf("\n %zu \n",mem.cap);
+//     printf("\n%zu characters in right and %zu characters in left \n",length(nd->right),nd->weight);
+//     printf("\n%zu total characters in the rope\n",length(nd->right) + nd->weight);
+//     char st = find_char_rope(nd, 338799346);
+//     char str = find_char_rope(nd, 338799347);
+//     char stri = find_char_rope(nd, 338799348);
+//     printf("\n%c %c %c\n",st,str,stri);
+//     free(leaves);
+//     // free(mem.arr);
+//     // free ropes
+//     if(is_balanced(root) == 0){
+//         free_internal(root);
+//     }
+//     // free_ropes(nd,&mem);
+//     // free_ropes(del3);
+//     // free_ropes(ins3);
+//     free_ropes(nd,&mem);
+//     for (size_t i = 0; i < mem.cap;++i){
+//         rope_node *node = mem.arr[i];
+//         if(!node)continue;
+//         if (node->str != NULL){
+//             free(node->str);
+//             node->str = NULL;
+//         };
+//         free(node);
+//         mem.arr[i] = NULL;
+//     }
+//     // for (size_t i = 0; i < mem.cap;++i){
+//     //     rope_node *node = mem.arr[i];
+//     //     if(!node)continue;
+//     //     free(node);
+//     //     mem.arr[i] = NULL;
+//     // }
+//     free(mem.arr);
+//     // free_ropes(nd,1);
+//     return 0;
+// }
