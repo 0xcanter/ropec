@@ -7,6 +7,7 @@ int main(){
     long len = strlen(str) / 2;
     char *left = str;
     char *right = str+len;
+    str[len-1] = '\0';
     mem_for_special mem;
     init_mem_f_s(&mem, 1);
 
