@@ -3,13 +3,21 @@
 
 #include "stddef.h"
 
-typedef struct rope_node rope_node ;
+typedef struct rope_node{
+    long weight;
+    char *str;
+    size_t line_count;
+    struct rope_node *left;
+    struct rope_node *right;
+}rope_node;
+
 typedef struct mem_for_special {
     rope_node **arr;
     size_t cap;
     size_t size;
 }mem_for_special;
 
+void free_mem(mem_for_special *mem);
 void init_mem_f_s(mem_for_special *mem,size_t initial_cap);
 int exists_in_mem(rope_node *node,mem_for_special *mem);
 void add_to_mem(mem_for_special *mem,rope_node *node);
