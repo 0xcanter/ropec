@@ -1,5 +1,5 @@
-rope: rope.c main.c
-	@gcc rope.c main.c -o test
+rope: rope.c test.c
+	@gcc rope.c test.c -o test
 run:
 	./test
 valgrind:

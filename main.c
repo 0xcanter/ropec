@@ -17,7 +17,7 @@ int main(){
 
     rope_node *rope1 = concat(temp, temp2);
     if(rope1 == NULL) return 1;
-    insert_rope(rope1, 5, "temple ", &rope1, &mem);
+    insert_rope(rope1, 5, "toffer ", &rope1, &mem);
     print_rope(rope1);printf("\n");
     free_ropes(rope1, &mem);
     return 0;
