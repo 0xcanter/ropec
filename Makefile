@@ -1,6 +1,6 @@
-rope: rope.c
-	@gcc -fsanitize=address -g -O1 -o rope rope.c;
+rope: rope.c main.c
+	@gcc rope.c main.c -o test
 run:
-	./rope
+	./main
 valgrind:
-	@valgrind  ./rope
+	@valgrind  ./main
