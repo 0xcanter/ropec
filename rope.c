@@ -68,7 +68,7 @@ void add_to_mem(mem_for_special *mem,rope_node *node){
         mem->arr = tmp;
         memset(mem->arr + old_cap, 0 , (mem->cap - old_cap) * sizeof(rope_node*));
     }
-    if (exists_in_mem(node,mem) == 0 ) {
+    if (!exists_in_mem(node,mem)) {
         mem->arr[mem->size++] = node;
     }
 }
@@ -205,6 +205,7 @@ rope_node *substr(rope_node *node,long start,long len){
     }
 }
 
+
 void print_rope(rope_node *node) {
     if (node == NULL){
         return;
@@ -216,11 +217,47 @@ void print_rope(rope_node *node) {
     print_rope(node->right);
 }
 
+
+void fast_substr(rope_node *node,long start,long end,rope_node **newsub,mem_for_special *mem){
+
+    if(node == NULL){
+        perror("error getting substring of the node: node is null");
+        return;
+    }
+    
+    long len = length(node);
+    long new_end;
+    
+    if(start < 0 || start > len){
+        perror("start cant be greater than length or less than 0");
+        return;
+    }
+    
+    rope_node *l,*r;
+    split_rope(node,start ,&l, &r,mem);
+
+    long remains = len - start;
+    if(end > remains){
+       new_end = remains;
+    }else new_end = end;
+    
+    rope_node *L,*R;
+    split_rope(r, new_end, &L,&R ,mem);
+    *newsub = L;
+    add_to_mem(mem, r);
+    add_to_mem(mem, l);
+    add_to_mem(mem, R);
+    add_to_mem(mem, L);
+    return;    
+   
+    
+}
+
 void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right,mem_for_special *mem){
     if(node == NULL){
         *left = NULL;
         *right = NULL;
-        perror("failed to split rope: rope is null");
+        // perror("failed to split rope: rope is null");
         return;
     };
     if(node->left == NULL && node->right == NULL){
@@ -239,6 +276,9 @@ void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right,mem_
             memcpy(right_str, node->str + pos, node->weight - pos);right_str[node->weight - pos] = '\0';
             *left = make_leaf_owned(left_str,pos);
             *right = make_leaf_owned(right_str,node->weight - pos);
+            add_to_mem(mem, *left);
+            add_to_mem(mem, *right);
+            
             add_to_mem(mem,node);
             return;
         }

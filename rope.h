@@ -1,6 +1,6 @@
 #ifndef ROPE_H
 #define ROPE_H
-
+#define CHUNK_SIZE 4096
 #include "stddef.h"
 
 typedef struct rope_node{
@@ -27,6 +27,7 @@ long length(rope_node *node);
 rope_node *concat(rope_node *left,rope_node *right);
 rope_node *substr(rope_node *node,long start,long len);
 void print_rope(rope_node *node);
+void fast_substr(rope_node *node,long start,long end,rope_node **newsub,mem_for_special *mem);
 void split_rope(rope_node *node,long pos,rope_node **left,rope_node **right,mem_for_special *mem);
 void insert_rope(rope_node *node,long pos,char *text,rope_node **root,mem_for_special *mem);
 void delete_rope(rope_node *node,long pos,rope_node **root,long len,mem_for_special *mem);
