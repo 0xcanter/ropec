@@ -1,24 +1,16 @@
 #include "rope.h"
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <stdio.h>
-
+#include <string.h>
 int main(){
-    char str[] = "this is a rope";
-    long len = strlen(str) / 2;
-    char *left = str;
-    char *right = str+len;
-    rope_node *temp2 = make_leaf(right);
-    str[len] = '\0';
-    rope_node *temp = make_leaf(left);
+    rope_node *rope;
     mem_for_special mem;
     init_mem_f_s(&mem, 1);
 
-    rope_node *rope1 = concat(temp, temp2);
-    if(rope1 == NULL) return 1;
-    insert_rope(rope1, 5, "toffer ", &rope1, &mem);
-    print_rope(rope1);printf("\n");
-    free_ropes(rope1, &mem);
-    return 0;
+    const char *emojis1 = "😀😃😄😁😆😅😂🤣☺️😊";
+    rope_append(&rope, emojis1);
+    rope_node *d;
+    delete_rope(rope,8 , &rope, 2, &mem, &d);
+    unsigned char *flat = flatten_to_string(rope);
+    printf("%s\n",strcmp((const char*)flat,"😀😃😄😁😆😅😂🤣😊") == 0 ? "PASS":"FAIL");
+    printf("%zu \n",length(rope));
 }
