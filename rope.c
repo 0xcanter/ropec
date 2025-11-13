@@ -217,14 +217,9 @@ void print_rope(rope_node *node) {
         return;
     };
     if (node->str != NULL && node->left == NULL && node->right == NULL){
-        // printf("this is leafstr:");
-        size_t h = utf8_char_byte(node->str, node->byte_count);
-        // printf("byte count is %s",h == node->byte_count ?"true":"false");
         for(size_t i = 0;i<node->byte_count;i++){
             printf("%c",node->str[i]);
         }
-        // printf("end leaf \n");
-        // printf("%s",node->str);
     }
     print_rope(node->left);
     print_rope(node->right);
