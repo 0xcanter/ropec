@@ -505,7 +505,7 @@ const unsigned char *utf8_char_at(const unsigned char *s,size_t i){
     size_t count = 0;
     while(*s){
         if((*s & 0xC0) != 0x80){
-        if(count == i)return s;
+            if(count == i)return s;
             count++;
         }
         s++;
@@ -516,9 +516,14 @@ const unsigned char *utf8_char_at(const unsigned char *s,size_t i){
 const unsigned char* find_char_rope(rope_node *node,size_t i){
     if(node == NULL) return (const unsigned char*)'\0';
     if(i >= length(node)) return (const unsigned char *)'\0';
+    static unsigned char buffer[10];
     if(node->right == NULL && node->left == NULL){
-        return utf8_char_at(node->str, i);
+        const unsigned char *c =  utf8_char_at(node->str, i);
+        size_t bytes = utf8_char_byte(utf8_char_at(node->str, i), 1);
+        memcpy(buffer, c, bytes);buffer[bytes] = '\0';
+        return buffer;
     }
+    
     if(i < node->weight){
       return  find_char_rope(node->left, i );
     }else {
