@@ -579,7 +579,9 @@ size_t find_start(rope_node *node,size_t i){
         }
         return byte;
     }
+    
     size_t left_lines = node->left ? node->line_count:0; 
+
     if(left_lines >= i) return find_start(node->left, i);
     else return  node->byte_count + find_start(node->right,i - left_lines);
 }
