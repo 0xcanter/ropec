@@ -13,6 +13,7 @@ int main(){
     "thats all from me and i get it\n"
     "this is not my type of thing and i dont know\n"
     "this is my favorite thing to do\n";
+
     rope_append(&rope, (const char *)emojis1);
     rope_node *d;
     clock_t start,end;
