@@ -22,8 +22,6 @@ int main(){
     insert_rope(rope, 6, "✅", &rope, &mem);
     insert_rope(rope, 7, "✅", &rope, &mem);
     rebalance(rope, &rope, &mem);
-    const unsigned char *t = find_char_rope(rope, 11);
-    printf("%s\n",t);
     end = clock();
     total = (double)(end - start)/CLOCKS_PER_SEC;
     printf("%.6f\n",total);
