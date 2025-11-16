@@ -141,6 +141,8 @@ rope_node *make_leaf(const char *str){
     return leaf;
 }
 
+
+
 rope_node *make_leaf_owned(unsigned char *str,size_t len){
     if(str == NULL){
         perror("failed to make leaf : str is null");
@@ -205,7 +207,7 @@ rope_node *concat(rope_node *left,rope_node *right){
     node->left = left;
     node->right = right;
     node->str = NULL;
-    node->line_count = left->line_count + right->line_count;
+    node->line_count = lines(left);
     node->weight = length(left);
     node->byte_count = length_byte(left);
     return node;
@@ -416,7 +418,7 @@ rope_node *build_balanced_rope(rope_node **leaves,size_t n){
     parent->str = NULL;
     parent->left = left;
     parent->right = right;
-    parent->line_count = (left ? lines(left):0)+(right ? lines(right):0);
+    parent->line_count = left ? lines(left):0;
     parent->weight = left ? length(left):0;
     parent->byte_count = left ? length_byte(left):0;
     return parent;
@@ -564,4 +566,20 @@ void rope_append(rope_node **root,const char *str){
         return;
     }
     *root = concat(*root, leaf);
+}
+
+size_t find_start(rope_node *node,size_t i){
+    if(node == NULL)return 0;
+
+    if(node->left == NULL && node->right == NULL){
+        static size_t byte = 0;
+        for (size_t len = 1; len <= i; byte++) {
+          if (node->str[byte] == '\n')
+            len++;
+        }
+        return byte;
+    }
+    size_t left_lines = node->left ? node->line_count:0; 
+    if(left_lines >= i) return find_start(node->left, i);
+    else return  node->byte_count + find_start(node->right,i - left_lines);
 }

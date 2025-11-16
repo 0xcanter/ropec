@@ -19,6 +19,7 @@ typedef struct mem_for_special {
     size_t size;
 }mem_for_special;
 
+size_t find_start(rope_node *node,size_t i);
 size_t utf8_char_len(const unsigned char *string);
 void free_mem(mem_for_special *mem);
 size_t lines(rope_node *node);
