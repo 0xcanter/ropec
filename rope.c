@@ -124,7 +124,7 @@ rope_node *make_leaf(const char *str){
             l_count++;
         }
     }
-
+    printf("this is len%zu",len);
     leaf->line_count = l_count;
     if(!leaf)return NULL;
     leaf->weight
@@ -153,18 +153,19 @@ rope_node *make_leaf_owned(unsigned char *str,size_t len){
         perror("failed to allocate memory for leaf");
         return NULL;
     }
-    
     size_t l_count = 0;
-    for(size_t i = 0;i<len;i++){
+    size_t i = 0;
+    while(str[i] != '\0'){
         if(str[i] == '\n'){
             l_count++;
         }
+        i++;
     }
-
+    // printf("l=%zu w=%zu b=%zu",l_count,utf8_char_len(str),len);
     leaf->line_count = l_count;
-    leaf->weight = utf8_char_len((unsigned char*)str);
+    leaf->weight = utf8_char_len(str);
     leaf->byte_count = len;
-    leaf->str = (unsigned char*)str;
+    leaf->str = str;
     leaf->str[leaf->byte_count] = '\0';
     leaf->left = leaf->right = NULL;
     return leaf;
@@ -497,9 +498,9 @@ size_t is_balanced(rope_node *node){
 
     printf("for left %lu\n", count_depth(node->left));
     size_t rope_length = length(node);
-    long depth_length = count_depth(node);
+    size_t depth_length = count_depth(node);
     size_t fib_depth = fibonacci(depth_length + 2);
-    printf("fib depth is %zu",fib_depth);
+    printf("fib depth is %zu",node->weight);
     return rope_length >= fib_depth ? 1:0;
 }
 
