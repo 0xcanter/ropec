@@ -183,7 +183,7 @@ size_t length_byte(rope_node *node){
     if(node->str != NULL){
         return node->byte_count;
     }
-    return length_byte(node->left) + length_byte(node->right); 
+    return node->byte_count + length_byte(node->right); 
 }
 
 size_t lines(rope_node *node){
@@ -191,7 +191,7 @@ size_t lines(rope_node *node){
     if (node->str != NULL){
         return node->line_count;
     }
-    return lines(node->left) + lines(node->right);
+    return node->line_count + lines(node->right);
 }                        
 
 rope_node *concat(rope_node *left,rope_node *right){
@@ -499,6 +499,7 @@ size_t is_balanced(rope_node *node){
     size_t rope_length = length(node);
     long depth_length = count_depth(node);
     size_t fib_depth = fibonacci(depth_length + 2);
+    printf("fib depth is %zu",fib_depth);
     return rope_length >= fib_depth ? 1:0;
 }
 
