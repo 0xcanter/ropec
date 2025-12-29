@@ -33,7 +33,7 @@ int exists_in_mem(rope_node *node,mem_for_special *mem) {
 
 void free_mem(mem_for_special *mem){
     if(mem->arr == NULL){
-        perror("mem.arr is null");
+        // perror("mem.arr is null");
         return;
     }
        for(size_t i = 0;i<mem->size;i++){
@@ -55,11 +55,11 @@ void free_mem(mem_for_special *mem){
 
 void add_to_mem(mem_for_special *mem,rope_node *node){
     if(node == NULL){
-        perror("node is null");
+        // perror("node is null");
         return;
     }
     if(mem == NULL){
-        perror("mem is null");
+        // perror("mem is null");
         return;
     }
 
@@ -68,7 +68,7 @@ void add_to_mem(mem_for_special *mem,rope_node *node){
         mem->cap = mem->cap * 2;
         rope_node **tmp = realloc(mem->arr, mem->cap * sizeof(rope_node*));
         if(!tmp){
-            perror("mem realloc failed!");
+            // perror("mem realloc failed!");
             exit(EXIT_FAILURE);
         }
         mem->arr = tmp;
@@ -107,26 +107,24 @@ size_t utf8_char_byte(const unsigned char *string,size_t char_index){
 
 rope_node *make_leaf(const char *str){
     if(str == NULL){
-        perror("error making leaf!: string is null");
+        // perror("error making leaf!: string is null");
         return NULL;
     }
     size_t len = utf8_char_len((const unsigned char *)str);
     size_t byte_count = strlen(str);
-    rope_node *leaf = malloc(sizeof(rope_node));
+    rope_node *leaf = calloc(1,sizeof(rope_node));
     if(leaf == NULL){
-        perror("failed to allocate memory for leaf!");
+        // perror("failed to allocate memory for leaf!");
         return NULL;
     }
 
     size_t l_count = 0;
-    for(size_t i = 0;i<len;i++){
+    for(size_t i = 0;i<byte_count;i++){
         if(str[i] == '\n'){
             l_count++;
         }
     }
-    printf("this is len%zu",len);
     leaf->line_count = l_count;
-    if(!leaf)return NULL;
     leaf->weight
         = len;
     leaf->byte_count = byte_count;
@@ -141,16 +139,48 @@ rope_node *make_leaf(const char *str){
     return leaf;
 }
 
+rope_node *make_leaf_paste(const char *str,size_t len){
+    if(str == NULL){
+        // perror("error making leaf!: string is null");
+        return NULL;
+    }
+    rope_node *leaf = calloc(1,sizeof(rope_node));
+    if(leaf == NULL){
+        // perror("failed to allocate memory for leaf!");
+        return NULL;
+    }
+
+    size_t l_count = 0;
+    for(size_t i = 0;i<len;i++){
+        if(str[i] == '\n'){
+            l_count++;
+        }
+    }
+    leaf->line_count = l_count;
+    leaf->byte_count = len;
+    leaf->str = malloc(len + 1);
+    if (!leaf->str) {
+        free(leaf);
+        return NULL;
+    }
+    memcpy(leaf->str, str,len );
+    leaf->str[leaf->byte_count] = '\0';
+    size_t char_len = utf8_char_len(leaf->str);
+    leaf->weight
+        = char_len;
+    leaf->left = leaf->right = NULL;
+    return leaf;
+}
 
 
 rope_node *make_leaf_owned(unsigned char *str,size_t len){
     if(str == NULL){
-        perror("failed to make leaf : str is null");
+        // perror("failed to make leaf : str is null");
         return NULL;
     }
-    rope_node *leaf = malloc(sizeof(rope_node));
+    rope_node *leaf = calloc(1,sizeof(rope_node));
     if(leaf == NULL){
-        perror("failed to allocate memory for leaf");
+        // perror("failed to allocate memory for leaf");
         return NULL;
     }
     size_t l_count = 0;
@@ -197,12 +227,12 @@ size_t lines(rope_node *node){
 
 rope_node *concat(rope_node *left,rope_node *right){
     if(left == NULL || right == NULL){
-        perror("error concatenating node the left or right node is null");
+        // perror("error concatenating node the left or right node is null");
         return NULL;
     }
-    rope_node *node = malloc(sizeof(rope_node));
+    rope_node *node = calloc(1,sizeof(rope_node));
     if(node == NULL){
-        perror("failed to allocate memory for node");
+        // perror("failed to allocate memory for node");
         return NULL;
     }
     node->left = left;
@@ -232,7 +262,7 @@ void print_rope(rope_node *node) {
 void substr(rope_node *node,size_t start,size_t end,rope_node **newsub,mem_for_special *mem){
 
     if(node == NULL){
-        perror("error getting substring of the node: node is null");
+        // perror("error getting substring of the node: node is null");
         return;
     }
     
@@ -240,7 +270,7 @@ void substr(rope_node *node,size_t start,size_t end,rope_node **newsub,mem_for_s
     size_t new_end;
     
     if(start > len){
-        perror("start cant be greater than length or less than 0");
+        // perror("start cant be greater than length or less than 0");
         return;
     }
     
@@ -334,7 +364,7 @@ size_t leaf_utf8_char_byte(rope_node *node,size_t char_index){
 
 void insert_rope(rope_node *node,size_t pos,char *text,rope_node **root,mem_for_special *mem){
     if(node == NULL){
-        perror("failed to insert rope: rope is null");
+        // perror("failed to insert rope: rope is null");
         return;
     }
     rope_node *left,*right;
@@ -347,7 +377,7 @@ void insert_rope(rope_node *node,size_t pos,char *text,rope_node **root,mem_for_
 void delete_rope(rope_node *node,size_t pos,rope_node **root,size_t len,mem_for_special *mem,rope_node **deleted){
     if (!node){
         *root = node;
-        perror("error deleting node: node is null");
+        // perror("error deleting node: node is null");
         return;
     };
     size_t total = length(node);
@@ -413,7 +443,7 @@ rope_node *build_balanced_rope(rope_node **leaves,size_t n){
     rope_node *right = build_balanced_rope(leaves + leftn, rightn);
     rope_node *parent = malloc(sizeof(rope_node));
     if(parent == NULL){
-        perror("error building balanced rope: memory allocation for parent node failed");
+        // perror("error building balanced rope: memory allocation for parent node failed");
         return NULL;
     }
     parent->str = NULL;
@@ -492,15 +522,9 @@ size_t fibonacci(size_t n){
 size_t is_balanced(rope_node *node){
     if (node == NULL) return 2;
     
-    printf("for node %lu\n",count_depth(node));
-
-    printf("for right %lu\n",count_depth(node->right));
-
-    printf("for left %lu\n", count_depth(node->left));
     size_t rope_length = length(node);
     size_t depth_length = count_depth(node);
     size_t fib_depth = fibonacci(depth_length + 2);
-    printf("fib depth is %zu",node->weight);
     return rope_length >= fib_depth ? 1:0;
 }
 
@@ -523,7 +547,7 @@ const unsigned char* find_char_rope(rope_node *node,size_t i){
     static unsigned char buffer[10];
     if(node->right == NULL && node->left == NULL){
         const unsigned char *c =  utf8_char_at(node->str, i);
-        size_t bytes = utf8_char_byte(utf8_char_at(node->str, i), 1);
+        size_t bytes = utf8_char_byte(c, 1);
         memcpy(buffer, c, bytes);buffer[bytes] = '\0';
         return buffer;
     }
@@ -570,11 +594,24 @@ void rope_append(rope_node **root,const char *str){
     *root = concat(*root, leaf);
 }
 
-size_t find_start(rope_node *node,size_t i){
-    if(node == NULL)return 0;
+rope_node *find_leaf(rope_node *node,size_t i){
+    if(node == NULL)return NULL;
 
     if(node->left == NULL && node->right == NULL){
-        static size_t byte = 0;
+        return node;
+    }
+
+    if(node->byte_count > i){
+        return find_leaf(node->left, i);
+    }else{
+        return find_leaf(node->right, i - node->byte_count);
+    }
+}
+
+size_t find_start(rope_node *node,size_t i){
+    if(node == NULL)return 0;
+    if(node->left == NULL && node->right == NULL){
+        size_t byte = 0;
         for (size_t len = 1; len <= i; byte++) {
           if (node->str[byte] == '\n')
             len++;
@@ -586,4 +623,15 @@ size_t find_start(rope_node *node,size_t i){
 
     if(left_lines >= i) return find_start(node->left, i);
     else return  node->byte_count + find_start(node->right,i - left_lines);
+}
+
+
+void rope_slice(rope_node *node,size_t line_start,size_t line_end,mem_for_special *mem,rope_node **slice){
+    if(node == NULL)return;
+    size_t line_total = lines(node->right) + node->line_count;
+    if(line_total < line_start || line_total < line_end )return;
+    size_t start_offset = find_start(node, line_start);
+    size_t end_offset = find_start(node, line_end+line_start);
+    substr(node, start_offset, end_offset - start_offset, slice, mem);
+    // print_rope(*slice);
 }
