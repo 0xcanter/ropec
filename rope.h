@@ -19,7 +19,9 @@ typedef struct mem_for_special {
     size_t size;
 }mem_for_special;
 
+rope_node *find_leaf(rope_node *node,size_t i);
 size_t find_start(rope_node *node,size_t i);
+void rope_slice(rope_node *node,size_t line_start,size_t line_end,mem_for_special *mem,rope_node **slice);
 size_t utf8_char_len(const unsigned char *string);
 void free_mem(mem_for_special *mem);
 size_t lines(rope_node *node);
@@ -28,6 +30,7 @@ int exists_in_mem(rope_node *node,mem_for_special *mem);
 void add_to_mem(mem_for_special *mem,rope_node *node);
 rope_node *make_leaf(const char *str);
 rope_node *make_leaf_owned(unsigned char *str,size_t len);
+rope_node *make_leaf_paste(const char *str,size_t len);
 size_t length(rope_node *node);
 rope_node *concat(rope_node *left,rope_node *right);
 void rebalance(rope_node *node,rope_node **root,mem_for_special *mem);
